@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "typeRoots": ["./src/types"],
 
-    "baseUrl": "src",
+    "baseUrl": "./src",
     "paths": {
       "@config/*": ["config/*"],
       "@middleware/*": ["middleware/*"],
