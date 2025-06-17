@@ -32,12 +32,11 @@ export const getPrompt: RequestHandler = async (req, res, next) => {
 
 export const createRecording: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.file) {
-      res.status(400).json({ success: false, error: "Audio file missing" });
+    const { key, promptId } = req.body;
+    if (!key || !promptId) {
+      res.status(400).json({ success: false, error: 'key and promptId required' });
       return;
     }
-
-    const promptId = String(req.body.promptId ?? "");
 
     let promptText = "";
     let promptType = "Improvisation";
@@ -53,13 +52,12 @@ export const createRecording: RequestHandler = async (req, res, next) => {
     }
 
     const reportId = await RecordingService.analyse(
-      req.file,
+      key,
       req.user!.id,
       promptText,
       promptType
     );
-
-    ok(res, { reportId });
+    ok(res, { reportId }, 201);
   } catch (err) {
     next(err);
   }

@@ -4,6 +4,8 @@ import { AiService, Metrics } from "../../services/ai.service";
 import { ReportModel } from "../report/report.model";
 import { ReportService } from "../report/report.service";
 import { Types } from "mongoose";
+import fs from 'fs/promises';
+import { downloadToTmp } from '../../services/s3.service';
 
 const FILLERS = /\b(um+|uh+|er+|ah+|like|you know)\b/gi;
 
@@ -36,14 +38,18 @@ function gapStats(timeline: { start: number; end: number }[], minGap = 0.25) {
 
 export const RecordingService = {
   async analyse(
-    file: Express.Multer.File,
+    key: string,
     userId: string,
     promptText: string,
     promptType: string
   ): Promise<string> {
-    const { transcript, durationSec, segments, words } =
-      await AiService.transcribe(file.path);
+    const tmp = `/tmp/${Date.now()}.webm`;
+    await downloadToTmp(key, tmp);                        // ⬅ local file for Whisper
 
+    const { transcript, durationSec, segments, words } =
+      await AiService.transcribe(tmp);
+
+    await fs.unlink(tmp);
     const wordsTotal = transcript.split(/\s+/).filter(Boolean).length;
     const wpm = durationSec ? Math.round((wordsTotal / durationSec) * 60) : 0;
     const { avgPauseMs, longPauses } = gapStats(
@@ -111,7 +117,7 @@ export const RecordingService = {
       ownerId: userId,
       promptText,
       title: promptType,
-      audioUrl: `/uploads/${path.basename(file.path)}`,
+      audioUrl: `/${key}`,
       transcript,
       metrics: { ...metrics, longPauses, score },
       advice,

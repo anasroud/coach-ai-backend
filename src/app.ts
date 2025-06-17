@@ -7,6 +7,7 @@ import { reportRouter } from "@modules/report/report.route";
 import { recordingRouter } from "@modules/recording/recording.route";
 import path from "path";
 import { env } from "@config/env";
+import { uploadRouter } from "@modules/recording/upload.route";
 
 export function createApp() {
   const app = express();
@@ -27,14 +28,7 @@ export function createApp() {
   app.use("/auth", authRouter);
   app.use(
     "/uploads",
-    cors({ origin: env.CLIENT_ORIGIN! }),
-    express.static(path.join(__dirname, "../uploads"), {
-      setHeaders: (res) => {
-        res.setHeader("Access-Control-Allow-Origin", env.CLIENT_ORIGIN);
-        res.setHeader("Access-Control-Allow-Headers", "Range");
-        res.setHeader("Accept-Ranges", "bytes");
-      },
-    })
+    cors({ origin: env.CLIENT_ORIGIN! }),uploadRouter
   );
 
   app.use("/recording", recordingRouter);
