@@ -7,7 +7,7 @@ export const uploadRouter = Router();
 uploadRouter.post('/upload-url', authGuard, async (req, res, next) => {
   try {
     const key = `${req.user!.id}/${Date.now()}.webm`;
-    const url = await presignPut(key, 15 * 60); // 15 min
+    const url = await presignPut(key, 15 * 60);
     res.json({ success: true, data: { url, key } });
   } catch (err) { next(err); }
 });

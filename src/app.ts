@@ -26,17 +26,6 @@ export function createApp() {
   app.use(cookieParser());
 
   app.use("/auth", authRouter);
-  app.use(
-    "/uploads",
-    cors({ origin: env.CLIENT_ORIGIN! }),
-    express.static(path.join(__dirname, "../uploads"), {
-      setHeaders: (res) => {
-        res.setHeader("Access-Control-Allow-Origin", env.CLIENT_ORIGIN);
-        res.setHeader("Access-Control-Allow-Headers", "Range");
-        res.setHeader("Accept-Ranges", "bytes");
-      },
-    })
-  );
 
   app.use('/upload', uploadRouter);
   app.use("/recording", recordingRouter);
