@@ -1,4 +1,3 @@
-import path from "path";
 import levenshtein from "js-levenshtein";
 import { AiService, Metrics } from "../../services/ai.service";
 import { ReportModel } from "../report/report.model";
@@ -44,7 +43,7 @@ export const RecordingService = {
     promptType: string
   ): Promise<string> {
     const tmp = `/tmp/${Date.now()}.webm`;
-    await downloadToTmp(key, tmp);                        // ⬅ local file for Whisper
+    await downloadToTmp(key, tmp);
 
     const { transcript, durationSec, segments, words } =
       await AiService.transcribe(tmp);
@@ -112,12 +111,13 @@ export const RecordingService = {
       };
     });
     const advice = await AiService.generateAdvice(metrics, cleaned);
+    const audioUrl = `/${key}`;
 
     const report = await ReportModel.create({
       ownerId: userId,
       promptText,
       title: promptType,
-      audioUrl: `/${key}`,
+      audioUrl,
       transcript,
       metrics: { ...metrics, longPauses, score },
       advice,
