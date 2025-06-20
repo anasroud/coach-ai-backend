@@ -46,7 +46,7 @@ export const RecordingService = {
     await downloadToTmp(key, tmp);
 
     const { transcript, durationSec, segments, words } =
-      await AiService.transcribe(tmp);
+      await AiService.transcribe(tmp, "auto");
 
     await fs.unlink(tmp);
     const wordsTotal = transcript.split(/\s+/).filter(Boolean).length;

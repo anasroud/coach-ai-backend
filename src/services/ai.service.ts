@@ -1,6 +1,8 @@
 import { createReadStream } from "fs";
 import OpenAI from "openai";
 import { env } from "../config/env";
+import path from 'node:path';
+import fs from 'fs';
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
@@ -52,28 +54,39 @@ function patchAdvice(
   return fixed.slice(0, 4);
 }
 
+function toFile(filePath: string): File {
+  const buffer = fs.readFileSync(filePath);
+  return new File([buffer], path.basename(filePath));
+}
+
+export type Lang = 'en' | 'ar' | 'auto';
+interface WordySegment extends OpenAI.Audio.Transcriptions.TranscriptionSegment {
+  words?: { start: number; end: number; word: string }[];
+}
+
 export const AiService = {
-  async transcribe(filePath: string): Promise<TranscriptResult> {
-    const resp: OpenAI.Audio.Transcriptions.TranscriptionVerbose =
-      await openai.audio.transcriptions.create({
-        model: "whisper-1",
-        file: createReadStream(filePath),
-        response_format: "verbose_json",
-        timestamp_granularities: ["word"],
-        language: "en",
-      });
+  async transcribe(filePath: string, lang: Lang = 'en'): Promise<TranscriptResult> {
+    const params: OpenAI.Audio.Transcriptions.TranscriptionCreateParams = {
+      model: 'whisper-1',
+      file: toFile(path.resolve(filePath)),
+      response_format: 'verbose_json',
+      timestamp_granularities: lang === 'en' ? ['word'] : ['segment'],
+      ...(lang !== 'auto' ? { language: lang } : {}),
+    };
 
-    const segments = resp.segments ?? [];
-    const words =
-      (resp as any).words ?? segments.flatMap((s: any) => s.words ?? []);
+    const resp = await openai.audio.transcriptions.create(params);
+    const verbose = resp as OpenAI.Audio.Transcriptions.TranscriptionVerbose;
+    const segments = (resp as OpenAI.Audio.Transcriptions.TranscriptionVerbose).segments as WordySegment[];
+    const words = segments.flatMap(s => s.words ?? []);
 
-    const durationSec = words.length
-      ? words[words.length - 1].end
-      : segments.length
+    const durationSec =
+      words.length
+        ? words[words.length - 1].end
+        : segments.length
         ? segments[segments.length - 1].end
         : 60;
 
-    return { transcript: resp.text, durationSec, segments, words };
+    return { transcript: verbose.text, durationSec, segments, words };
   },
 
   async sentiment(
