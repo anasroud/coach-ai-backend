@@ -152,7 +152,7 @@ export const AiService = {
         {
           role: "system",
           content:
-            "You are an expert speech coach. Provide actionable feedback only. if there is any metrics that is 0 ignore it",
+            "You are an expert speech coach. Provide actionable feedback only. if there is any metrics that is 0 ignore it return the feedback in the language you receive",
         },
         {
           role: "user",

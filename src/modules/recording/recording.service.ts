@@ -6,7 +6,8 @@ import { Types } from "mongoose";
 import fs from 'fs/promises';
 import { downloadToTmp } from '../../services/s3.service';
 
-const FILLERS = /\b(um+|uh+|er+|ah+|like|you know)\b/gi;
+const FILLERS = "um+|uh+|er+|ah+|like|you know|I mean|well|so|actually|basically|literally|kind of|sort of|right|okay|you see|hmm+|huh+|mm+|mmm+|يعني+|اه+|مم+|ام+|شو+|اوك|طيب|خلينا|اصلا|فيعني|ها|ااا|اهه|والله|فهمت|ايش|اوكي|همم|مثلا|هيك|يعني يعني";
+const FILLERS_REGEX = new RegExp(`\\b(${FILLERS})\\b`, 'gi');
 
 function wordErrorRate(expected: string, actual: string) {
   const ref = expected.toLowerCase().split(/\s+/);
@@ -16,7 +17,7 @@ function wordErrorRate(expected: string, actual: string) {
 
 function fillerRate(text: string) {
   const total = text.split(/\s+/).length;
-  const fillers = (text.match(FILLERS) ?? []).length;
+  const fillers = (text.match(FILLERS_REGEX) ?? []).length;
   return (fillers / total) * 100;
 }
 
